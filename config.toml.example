@@ -1,0 +1,22 @@
+[repo]
+path = "/path/to/repo"
+
+[crawl]
+servers = [
+    "my.hedgedoc.server",
+    "demo.hedgedoc.org"
+]
+
+seeds = [
+    "https://demo.hedgedoc.org/release-notes",
+    "https://my.hedgedoc.server/example-pad"
+]
+
+interval = "5m"
+
+[notify]
+username = "@pads:matrix.example.org"
+password = "my-s3cure-pa55w0rd!"
+room = "!exampleRoomIdIdIdI:example.matrix.org"
+
+cool-down = "1h"
