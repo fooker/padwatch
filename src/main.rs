@@ -1,6 +1,3 @@
-#![feature(try_blocks)]
-#![feature(hash_drain_filter)]
-
 use std::collections::{HashMap, HashSet, LinkedList};
 use std::collections::hash_map::Entry;
 use std::fmt::{Display, Formatter};
@@ -152,7 +149,7 @@ async fn main() -> Result<()> {
     let opt = Opt::from_args();
     let config = Config::load(opt.config).await?;
 
-    let mut notifier = Notifier::connect(
+    let notifier = Notifier::connect(
         &config.notify.username,
         &config.notify.password,
         &config.notify.room,
@@ -171,42 +168,52 @@ async fn main() -> Result<()> {
     loop {
         let mut queue = LinkedList::from_iter(known.iter().cloned());
         while let Some(link) = queue.pop_front() {
-            let result: Result<()> = try {
-                let pad = Pad::fetch(&link).await?;
-
-                let urls = pad.crawl()?;
-                for url in urls {
-                    if let Some(link) = Link::from_url(&config.crawl.servers, &url) {
-                        if known.insert(link.clone()) {
-                            queue.push_back(link);
-                        }
-                    }
-                }
-
-                let tracker = match trackers.entry(link.clone()) {
-                    Entry::Occupied(occupied) => {
-                        occupied.into_mut()
-                            .update(&pad.content)
-                    }
-                    Entry::Vacant(vacant) => {
-                        vacant.insert(match repo.read(&link).await? {
-                            Some(existing) => Tracker::from_existing(&existing, &pad.content),
-                            None => Tracker::from_new(&pad.content),
-                        })
-                    }
-                };
-
-                if tracker.quiesce(config.notify.cool_down) {
-                    let orig = repo.read(&link).await?;
-                    repo.store(&link, &pad.content).await?;
-
-                    notifier.notify(&pad, orig.as_deref()).await?
+            let pad = match Pad::fetch(&link).await {
+                Ok(pad) => pad,
+                Err(err) => {
+                    eprintln!("Error fetching link {}: {}", link, err);
+                    continue;
                 }
             };
 
-            if let Err(err) = result {
-                eprintln!("Error processing link {}: {}", link, err);
-                continue;
+            let urls = match pad.crawl() {
+                Ok(urls) => urls,
+                Err(err) => {
+                    eprintln!("Error crawling pad {}: {}", link, err);
+                    continue;
+                }
+            };
+
+            for url in urls {
+                if let Some(link) = Link::from_url(&config.crawl.servers, &url) {
+                    if known.insert(link.clone()) {
+                        queue.push_back(link);
+                    }
+                }
+            }
+
+            let tracker = match trackers.entry(link.clone()) {
+                Entry::Occupied(occupied) => {
+                    occupied.into_mut()
+                        .update(&pad.content)
+                }
+                Entry::Vacant(vacant) => {
+                    vacant.insert(match repo.read(&link).await? {
+                        Some(existing) => Tracker::from_existing(&existing, &pad.content),
+                        None => Tracker::from_new(&pad.content),
+                    })
+                }
+            };
+
+            if tracker.quiesce(config.notify.cool_down) {
+                let orig = repo.read(&link).await?;
+
+                if let Err(err) = notifier.notify(&pad, orig.as_deref()).await {
+                    eprintln!("Failed to notify: {}", err);
+                    continue;
+                }
+
+                repo.store(&link, &pad.content).await?;
             }
         }
 

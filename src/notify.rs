@@ -34,7 +34,7 @@ impl Notifier {
         });
     }
 
-    pub async fn notify(&mut self, pad: &Pad, orig: Option<&str>) -> Result<()> {
+    pub async fn notify(&self, pad: &Pad, orig: Option<&str>) -> Result<()> {
         let mut html = String::new();
 
         if orig.is_some() {
