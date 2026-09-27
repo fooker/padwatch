@@ -60,10 +60,10 @@ impl Pad {
 
         let mut links = Vec::new();
         for (event, _) in parser {
-            if let Event::Start(Tag::Link(_link_type, link_dest, _link_title)) = event {
+            if let Event::Start(Tag::Link{dest_url, ..}) = event {
                 let mut link_dest = Url::options()
                     .base_url(Some(&self.link.as_url()))
-                    .parse(&link_dest)?;
+                    .parse(&dest_url)?;
                 link_dest.set_fragment(None);
 
                 links.push(link_dest.to_string());

@@ -1,20 +1,21 @@
 [package]
 name = "padwatch"
-version = "0.1.0"
-edition = "2021"
+version = "0.2.0"
+edition = "2024"
 
 [dependencies]
-reqwest = { version = "0.11", features = [ "json" ] }
-tokio = {version = "1", features = [ "full" ] }
-anyhow = "1"
-chrono = { version = "0.4", features = [ "serde" ] }
-serde = { version = "1", features = [ "derive" ] }
-humantime-serde = "1"
-toml = "0.7"
-pulldown-cmark = { version = "0.9" }
-structopt = "0.3"
-matrix-sdk = { version = "0.6", features = [ "markdown" ] }
-humantime = "2"
-sha2 = "0.10"
-similar = "2.2"
-url = "2.4"
+anyhow = "1.0.104"
+structopt = { version = "0.3" }
+tokio = { version = "1.53.1", features = ["full"] }
+reqwest = { version = "0.13.5", features = ["json"] }
+matrix-sdk = { version = "0.19.1", features = ["markdown"] }
+chrono = { version = "0.4.45", features = ["serde"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.151" }
+humantime-serde = "1.1.1"
+toml = "1.1.6+spec-1.1.0"
+pulldown-cmark = { version = "0.13.4" }
+humantime = "2.4.0"
+sha2 = "0.11.0"
+similar = "3.2.0"
+url = "2.5.8"

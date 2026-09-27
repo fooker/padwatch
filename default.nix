@@ -1,6 +1,7 @@
 { rustPlatform
 , pkg-config
 , openssl
+, sqlite
 }:
 
 rustPlatform.buildRustPackage {
@@ -9,8 +10,14 @@ rustPlatform.buildRustPackage {
 
   src = ./.;
 
-  cargoHash = "sha256-ee9+TleGL0IV0Eca+YAxldtYpZDNtK1koZPtzdiXiBI=";
+  cargoHash = "sha256-qTimnlfuiZcRrmT7F/08lnq28gfjzU8tdbkXotKVNUo=";
 
-  nativeBuildInputs = [ pkg-config ];
-  buildInputs = [ openssl ];
+  nativeBuildInputs = [
+    pkg-config
+  ];
+
+  buildInputs = [
+    openssl
+    sqlite.dev
+  ];
 }

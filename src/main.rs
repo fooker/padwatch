@@ -150,8 +150,8 @@ async fn main() -> Result<()> {
     let config = Config::load(opt.config).await?;
 
     let notifier = Notifier::connect(
-        &config.notify.username,
-        &config.notify.password,
+        &config.notify.server,
+        &config.notify.token,
         &config.notify.room,
     ).await?;
 

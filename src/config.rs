@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use anyhow::Result;
-use matrix_sdk::ruma::{OwnedRoomId, OwnedUserId};
+use matrix_sdk::ruma::{OwnedRoomId, OwnedServerName};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -26,9 +26,9 @@ pub struct NotifyConfig {
     #[serde(rename = "cool-down", with = "humantime_serde")]
     pub cool_down: Duration,
 
-    pub username: OwnedUserId,
+    pub server: OwnedServerName,
 
-    pub password: String,
+    pub token: String,
 
     pub room: OwnedRoomId,
 }

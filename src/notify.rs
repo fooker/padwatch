@@ -1,12 +1,12 @@
 use std::fmt::Write;
 
 use anyhow::Result;
-use matrix_sdk::Client;
-use matrix_sdk::ruma::{OwnedRoomId, RoomId, UserId};
 use matrix_sdk::ruma::api::client::message::send_message_event;
-use matrix_sdk::ruma::events::AnyMessageLikeEventContent;
 use matrix_sdk::ruma::events::room::message::{MessageType, RoomMessageEventContent, TextMessageEventContent};
+use matrix_sdk::ruma::events::AnyMessageLikeEventContent;
 use matrix_sdk::ruma::TransactionId;
+use matrix_sdk::ruma::{OwnedRoomId, RoomId, ServerName};
+use matrix_sdk::Client;
 use similar::TextDiff;
 
 use crate::pads::Pad;
@@ -17,16 +17,20 @@ pub struct Notifier {
 }
 
 impl Notifier {
-    pub async fn connect(username: &UserId, password: &str, room_id: &RoomId) -> Result<Self> {
+    pub async fn connect(server_name: &ServerName, token: &str, room_id: &RoomId) -> Result<Self> {
         let client = Client::builder()
-            .server_name(username.server_name())
+            .server_name(server_name)
             .handle_refresh_tokens()
             .build().await?;
 
-        client.login_username(username, password)
+       client.matrix_auth()
+            .login_custom(
+                "org.matrix.login.jwt",
+                [("token".to_owned(), token.into())].into_iter().collect(),
+            )?
             .initial_device_display_name("PadWatch Bot")
             .request_refresh_token()
-            .send().await?;
+            .await?;
 
         return Ok(Self {
             client,
@@ -68,12 +72,12 @@ impl Notifier {
                 MessageType::Text(
                     TextMessageEventContent::html(plain, html))));
         let request = send_message_event::v3::Request::new(
-            &self.room_id,
-            &transaction,
+            self.room_id.clone(),
+            transaction.clone(),
             &content,
         )?;
 
-        self.client.send(request, None).await?;
+        self.client.send(request).await?;
 
         return Ok(());
     }
